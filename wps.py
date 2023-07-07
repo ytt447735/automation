@@ -115,5 +115,5 @@ def SenPC():
 if __name__ == '__main__':
     SenWx()
     SenPC()
-    if if_send=== true
-       notify.send('WPS打卡',sen)
+    if if_send == 'true':
+        notify.send('WPS打卡',sen)
