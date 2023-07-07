@@ -25,6 +25,11 @@ wpsua=***;wps_sid=***;day=1
 wps_wx
 csrftoken=***;wps_sid=***
 ```
+是否启用通知：
+```
+wps_send
+不填不启用，填入 true 则启用
+```
 </details>
 
 ---
