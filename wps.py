@@ -17,7 +17,7 @@ from fun import pu
 import notify
 
 sen = ''
-
+if_send = os.getenv("wps_send")
 
 def SenWx():
     global sen
@@ -28,7 +28,7 @@ def SenWx():
         return
     wps_wx_list = wps_wx.split('&')
     senp=senp+'\n'+"-------------------总共" + str(int(len(wps_wx_list))) + "个wps_微信CK-------------------"
-    for mt_token in wps_wx_list:
+    for mt_token 在 wps_wx_list:
         ck = pu.convert_cookies_to_dict(mt_token)
         try:
             wx = wpswx.wps(ck["csrftoken"], ck["wps_sid"])
@@ -36,7 +36,7 @@ def SenWx():
             Da = None
             IsOK = False
             senp=senp+'\n'+f"👇👇👇在打卡中👇👇👇"
-            for i in range(1, 20):
+            for i 在 range(1， 20):
                 wx.GetCode()
                 time.sleep(0.5)
                 if wx.SenSign():
@@ -71,7 +71,7 @@ def SenPC():
         return
     wps_pc_list = wps_pc.split('&')
     senp=senp+'\n'+"-------------------总共" + str(int(len(wps_pc_list))) + "个wps_PC CK-------------------"
-    for mt_token in wps_pc_list:
+    for mt_token 在 wps_pc_list:
         ck = pu.convert_cookies_to_dict(mt_token)
         try:
             pc = wpspc.wps(ck["wpsua"], ck["wps_sid"])
@@ -92,7 +92,7 @@ def SenPC():
             else:
                 senp=senp+'\n'+"签到失败"
             senp=senp+'\n'+pc.GetSpace()
-            if 'day' in mt_token:
+            if 'day' 在 mt_token:
                 d=ck['day']
                 if pc.SenExchange(d):
                     senp = senp + '\n' + f"兑换{d}天成功"
@@ -115,4 +115,5 @@ def SenPC():
 if __name__ == '__main__':
     SenWx()
     SenPC()
-    notify.send('WPS打卡',sen)
+    if if_send=== true
+       notify.send('WPS打卡',sen)
