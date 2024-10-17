@@ -7,7 +7,7 @@ from io import BytesIO
 from fun import baidu
 import base64
 from io import BytesIO
-
+from .code import identify
 
 class wps:
     def __init__(self, cookie):
@@ -62,7 +62,7 @@ class wps:
         return int(round(time.time() * 1000))
 
     # 处理验证码
-    def code_processing(self):
+    def code_processing_bak(self):
         userid = self.get_check()
         if userid == "":
             return False
@@ -126,7 +126,30 @@ class wps:
         print(P)
         print(L)
         return self.submit_code(P)
+    
+    
+    def code_processing(self):
+        userid = self.get_check()
+        if userid == "":
+            return False
+        url = f"https://personal-act.wps.cn/vas_risk_system/v1/captcha/image?service_id=wps_clock&t={self.get_time()}&request_id=wps_clock_{userid}"
 
+        # 构造请求头，包含Cookie信息
+        headers = {'Cookie': self.ck}
+
+        # 发送带有Cookie的HTTP请求获取图片
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            # 将图片内容转换为base64
+            image_base64 = base64.b64encode(response.content).decode('utf-8')
+            # 处理验证码
+            code = identify('pc',image_base64)
+            # return code
+            return self.submit_code(code)
+        else:
+            return None
+    
+    
     # 提交验证码
     def submit_code(self, c):
         url = "https://personal-act.wps.cn/wps_clock/v2"
@@ -141,12 +164,15 @@ class wps:
         }
         response = requests.request("POST", url, headers=headers, data=payload)
         print(response.text)
+        if 'ClockAgent' in response.text:
+            self.Log = self.Log + "🙅你今日已经签到过了！\n"
+            return True
         j = ujson.loads(response.text)
         if j["result"] == "ok":
-            self.Log = self.Log + f"今日签到成功，获得{j['data']['member']['hour']}小时会员\n"
+            self.Log = self.Log + f"🎉今日签到成功，获得{j['data']['member']['hour']}小时会员\n"
             return True
         else:
-            self.Log = self.Log + f"今日签到失败，{j['msg']}\n"
+            self.Log = self.Log + f"🥀今日签到失败，{j['msg']}\n"
         return False
 
     # 签到兑换
@@ -163,10 +189,10 @@ class wps:
         print(response.text)
         j = ujson.loads(response.text)
         if j["result"] == "ok":
-            self.Log = self.Log + f"兑换成功，获得{day}天会员\n"
+            self.Log = self.Log + f"🎉兑换成功，获得{day}天会员\n"
             return True
         else:
-            self.Log = self.Log + f"兑换失败，{j['msg']}\n"
+            self.Log = self.Log + f"🥀兑换失败，{j['msg']}\n"
             return False
 
     # 获取余额
@@ -188,6 +214,75 @@ class wps:
             self.Log = self.Log + f"🏦已使用额度：{ cost }小时({ cost // 24}天)\n"
             self.Log = self.Log + f"💰剩余额度：{total}小时({total // 24}天)\n"
             return j
+
+    # 空间额度查询
+    def get_space_quota(self):
+        url = "https://vip.wps.cn/sign/mobile/v3/get_data"
+        payload={}
+        headers = {
+        'Referer': 'https://zt.wps.cn/spa/2019/vip_mobile_sign_v2/?csource=pc_cloud_personalpanel&position=pc_cloud_sign',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.110 Safari/537.36',
+        'Cookie': self.ck
+        }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        print(response.text)
+        j = ujson.loads(response.text)
+        if j["result"] == "ok":
+            used = j['data']['spaces_info']['used']
+            total = j['data']['spaces_info']['total']
+            unit = j['data']['spaces_info']['unit']
+            self.Log = self.Log + f"☁️云空间：{ used }{ unit }/{ total }{ unit }\n"
+            self.Log = self.Log + "📝签到日志：\n"
+            normal_list = j['data']["reward_list"]["space"]["normal"]
+            # 循环输出normal数组，带循环序号
+            for index, value in enumerate(normal_list, start=1):
+                self.Log = self.Log + f"⌚️第{index}天🎁奖励{ value }M\n"
+
+
+    # 空间验证码处理
+    def space_code_processing(self):
+        url = f"https://vip.wps.cn/checkcode/signin/captcha.png?platform=8&encode=0&img_witdh=336&img_height=84.48&v={self.get_time()}"
+        payload={}
+        headers = {
+        'Referer': 'https://zt.wps.cn/spa/2019/vip_mobile_sign_v2/?csource=pc_cloud_personalpanel&position=pc_cloud_sign',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.110 Safari/537.36',
+        'Cookie': self.ck
+        }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        # print(response.text)
+        if response.status_code == 200:
+            # 将图片内容转换为base64
+            image_base64 = base64.b64encode(response.content).decode('utf-8')
+            # 处理验证码
+            code = identify('space',image_base64)
+            # return 
+            return self.submit_space(code)
+        else:
+            return None
+
+    
+    # 空间签到
+    def submit_space(self, c):
+        url = f"https://vip.wps.cn/sign/v2?platform=8&captcha_pos={c}&img_witdh=336&img_height=84.48"
+        payload={}
+        headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.110 Safari/537.36',
+        'Referer': 'https://zt.wps.cn/spa/2019/vip_mobile_sign_v2/?csource=pc_cloud_personalpanel&position=pc_cloud_sign',
+        'Cookie': self.ck
+        }
+        response = requests.request("POST", url, headers=headers, data=payload)
+        print(response.text)
+        if "10003" in response.text:
+            self.Log = self.Log + f"🙅你今日已经空间已经签到过了！\n"
+            return True
+        j = ujson.loads(response.text)
+        if j["result"] == "ok":
+            self.Log = self.Log + f"🎉今日空间签到成功！\n"
+            return True
+        else:
+            self.Log = self.Log + f"🥀今日空间签到失败，{j['msg']}\n"
+        return False
+
 
     # 获取日志
     def get_log(self):
