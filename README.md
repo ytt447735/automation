@@ -17,11 +17,19 @@ PC(day等于每日签到时自动兑换天数，可不设)：
 wps_pc
 wpsua=***;wps_sid=***;day=1
 ```
+##### 依赖
+```
+ujson
+requests
+```
 #### 验证码识别配置
 之前版本采用的是百度的手写文字识别功能，[获取](https://console.bce.baidu.com/ai/?_=1722298138766#/ai/ocr/overview/index)
-在"/fun/baidu.py"文件内修改"API_KEY"、"SECRET_KEY"的值
-百度识别准确率低，已替换，原代码保留着，可自行替换
-新代码已采用YOLOv8模型识别，准确率98%左右，识别模型代码暂不开放，识别接口暂免费提供
+在"/fun/baidu.py"文件内修改"API_KEY"、"SECRET_KEY"的值<br/>
+百度识别准确率低，已替换，原代码保留着，可自行替换<br/>
+新代码已采用YOLOv8模型识别，准确率98%左右，识别模型代码暂不开放，识别接口暂免费提供<br/>
+
+#### CK失效
+目前测试发现CK好像不会过期，一直有效
 </details>
 
 ---
