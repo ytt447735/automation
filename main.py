@@ -1,5 +1,5 @@
 import os
-from fun import wpspc
+from fun import wpspc,OnePlus
 import notify
 
 def SenPC():
@@ -28,6 +28,32 @@ def SenPC():
             print("出错了！详细错误👇错误CK👉" + mt_token)
             print(e)
 
+# OnePlus
+def SenOnePlus():
+    OnePlus_COOKIE = os.getenv("OnePlus_COOKIE")
+    if not OnePlus_COOKIE:
+        notify.send("OnePlus_COOKIE",'🙃OnePlus_COOKIE 变量未设置')
+        print('🙃OnePlus_COOKIE 变量未设置')
+        exit()
+    ck_list = OnePlus_COOKIE.split('&')
+    print("-------------------总共" + str(int(len(ck_list))) + "🙃OnePlus_COOKIE CK-------------------")
+    for mt_token in ck_list:
+        try:
+            w = OnePlus.oneplus(mt_token)
+            w.set_log("\n--------OPPO商城任务--------\n")
+            t = w.get_activityId()
+            w.shopping_signIn()
+            w.get_task()
+            w.membership_grade()
+            w.integral_query()
+            print(w.get_log())
+            notify.send("OnePlus", w.get_log())
+        except Exception as e:
+            print("出错了！详细错误👇错误CK👉" + mt_token)
+            print(e)
+            notify.send("OnePlus", "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
+
 
 if __name__ == '__main__':
     SenPC()
+    SenOnePlus()
