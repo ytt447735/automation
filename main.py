@@ -1,3 +1,14 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+File: main.py(automation签到)
+Author: ytt447735
+cron: 8 0 * * *
+new Env('automation签到');
+Update: 2024/10/19
+"""
+
 import os
 from fun import wpspc,OnePlus
 import notify
