@@ -28,7 +28,7 @@ class oneplus:
         if match:
             # return self.shopping_signIn(match.group(1))
             self.activityId_activityInfo = match.group(1)
-            print(f"activityId={self.activityId_activityInfo}")
+            print(f"activactivityId_activityInfoityId={self.activityId_activityInfo}")
         else:
             print("签到标识获取失败")
             self.Log = self.Log + f"📝签到失败，签到标识获取失败！\n"
@@ -36,7 +36,7 @@ class oneplus:
         match = re.search(r'"taskActivityInfo":{"activityId":"(\d+)"', response.text)
         if match:
             self.activityId_taskActivityInfo = match.group(1)
-            print(f"activityId={self.activityId_taskActivityInfo}")
+            print(f"activityId_taskActivityInfo={self.activityId_taskActivityInfo}")
         else:
             print("任务标识获取失败")
             self.Log = self.Log + f"📝签到失败，任务标识获取失败！\n"
@@ -128,9 +128,21 @@ class oneplus:
                 activityId = element['activityId']
                 taskType = element['taskType'] # 1=浏览，4=预约， 6=开卡/购买
                 taskStatus = element['taskStatus'] # 是否完成
-                if taskStatus == 0:
-                    if taskType == 0:
-                        self.task_signInOrShareTask(taskName, taskId, activityId)
+                attachConfigTwo_link = element['attachConfigTwo']['link']
+                skuId = ''
+                match = re.search(r'skuId=(\d+)', attachConfigTwo_link)
+                if match:
+                    skuId = match.group(1)
+
+
+                tt = self.button_text_status(element)
+                if tt == 2:
+                    self.task_signInOrShareTask(taskName, taskId, activityId)
+                elif tt==3:
+                    print(f"skuId={skuId}")
+                    self.subscribes(skuId,taskName, taskId, activityId)
+                else:
+                    self.Log = self.Log + f"❌{ taskName } 任务执行失败，{ tt }\n"
                 time.sleep(3)
 
     # 提交任务
@@ -175,18 +187,20 @@ class oneplus:
             self.Log = self.Log + f"❌{ taskName } 任务失败，{ message }\n"
 
     # 预约任务
-    def subscribes(self, skuId):
+    def subscribes(self, skuId,taskName, taskId, activityId):
         url = "https://msec.opposhop.cn/goods/web/subscribes/goodsSubscribeV1"
         payload = f"type=1&skuId={ skuId }"
         headers = {
             'Cookie': self.ck,
-            'Accept': 'application/json, text/plain, */*',
-            'User-Agent': self.UA
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'okhttp/4.9.3.6'
         }
         response = requests.post(url, data=payload, headers=headers)
+        # response = requests.request("POST", url, headers=headers, data=payload)
         print("subscribes",response.text)
+        j = ujson.loads(response.text)
         if j["code"] == 200:
-            self.task_receiveAward()
+            self.task_receiveAward(taskName, taskId, activityId)
         else:
             message = j['errorMessage']
             self.Log = self.Log + f"❌{ taskName } 预约失败，{ message }\n"
@@ -201,5 +215,46 @@ class oneplus:
         # return self.Log.replace("\n","\r\n")
         return self.Log
 
+
+
+    def button_text_status(self,t):
+        TASK_STATUS = {
+            'PREPARE_FINISH': 1,
+            'GO_AWARD': 2,
+            'FINISHED': 3,
+            'NOT_REMAINING_NUMBER': 6
+        }
+        task_type_texts = [
+            1,# "立即签到",
+            2,# "去看看",
+            # "去分享",
+            2,# "去逛逛",
+            3,# "去预约",
+            3,# "去预约",
+            3,# "去预约",
+            # "去购买",
+            # "去组队",
+            2,# "去看看",
+            3,# "去预约",
+            # "去完成",
+            # "去添加",
+            # "去认证",
+            # "去关注",
+            # "去填写",
+            2,# "去逛逛",
+            2,# "去看看"
+        ]
+
+        if t['taskStatus'] == TASK_STATUS['PREPARE_FINISH']:
+            # return task_type_texts.get(t['taskType'], "已结束")
+            return task_type_texts[t['taskType']]
+        elif t['taskStatus'] == TASK_STATUS['GO_AWARD']:
+            return "领奖励"
+        elif t['taskStatus'] == TASK_STATUS['NOT_REMAINING_NUMBER']:
+            return "领光了"
+        elif t['taskStatus'] == TASK_STATUS['FINISHED']:
+            return "已完成"
+        else:
+            return "已结束"
                 
 
