@@ -16,6 +16,7 @@ class wps:
         self.Referer = 'https://vip.wps.cn/spa/2021/wps-sign/?position=2020_vip_massing&client_pay_version=202301'
         self.Origin = 'https://vip.wps.cn'
         self.Log = ""
+        self.code_fail = 0
 
     # 获取奖励信息
     def get_reward(self):
@@ -143,10 +144,14 @@ class wps:
             # 将图片内容转换为base64
             image_base64 = base64.b64encode(response.content).decode('utf-8')
             # 处理验证码
-            code = identify('pc',image_base64)
+            if self.code_fail<=3:
+                code = identify('pc', image_base64, '0')
+            if self.code_fail>=3:
+                code = identify('pc', image_base64, '1')
             # return code
             return self.submit_code(code)
         else:
+            self.code_fail = self.code_fail + 1
             return None
     
     
@@ -254,7 +259,7 @@ class wps:
             # 将图片内容转换为base64
             image_base64 = base64.b64encode(response.content).decode('utf-8')
             # 处理验证码
-            code = identify('space',image_base64)
+            code = identify('space',image_base64,'0')
             # return 
             return self.submit_space(code)
         else:
