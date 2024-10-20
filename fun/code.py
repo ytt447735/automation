@@ -4,12 +4,14 @@ import re
 import base64
 
 # 识别验证码
-def identify(mo,code):
+def identify(mo,code,model):
     url = f"http://cn-hk-bgp-4.ofalias.net:50818/inference_wps_{mo}"
     payload = code
     headers = {
         'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
-        'Content-Type': 'text/plain'
+        'Content-Type': 'text/plain',
+        'source': '1',
+        'model': model
     }
     response = requests.request("POST", url, headers=headers, data=payload)
     pattern = re.compile(r'\[\[(.*?)\]\]')
