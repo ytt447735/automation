@@ -32,6 +32,16 @@ def SenPC():
                     print("第" + str(i + 1) + "次尝试签到失败")
             w.get_reward()  # 获取奖励信息
             w.get_balance()  # 获取余额
+            # 开始空间处理
+            w.set_log("\n--------云空间--------\n")
+            for i in range(5):
+                if w.space_code_processing():
+                    print("第" + str(i + 1) + "次尝试空间签到成功")
+                    break
+                else:
+                    print("第" + str(i + 1) + "次尝试空间签到失败")
+                time.sleep(1)
+            w.get_space_quota() #获取空间额度
             print("📝签到日志：")
             print(w.get_log())
             notify.send("WPS_PC", w.get_log().replace('\n','\\n'))
