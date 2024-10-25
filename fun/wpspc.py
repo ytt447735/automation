@@ -288,7 +288,12 @@ class wps:
             self.Log = self.Log + f"🥀今日空间签到失败，{j['msg']}\n"
         return False
 
+    
+    # 新增日志
+    def set_log(self,text):
+        self.Log = self.Log + text
 
+    
     # 获取日志
     def get_log(self):
         return self.Log
