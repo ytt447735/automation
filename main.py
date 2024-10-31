@@ -10,7 +10,7 @@ Update: 2024/10/19
 """
 
 import os
-from fun import wpspc,OnePlus
+from fun import wpspc,OnePlus,SunLogin
 import notify
 
 def SenPC():
@@ -78,3 +78,5 @@ def SenOnePlus():
 if __name__ == '__main__':
     SenPC()
     SenOnePlus()
+    w = SunLogin.sunlogin()
+    w.run(notify)
