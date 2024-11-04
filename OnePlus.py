@@ -1,12 +1,22 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+File: OnePlus.py(OnePlus签到)
+Author: ytt447735
+cron: 0 8 * * *
+new Env('OnePlus签到');
+Update: 2024/10/19
+"""
+import os,notify
 import ujson
 import requests
-import com
 import re
 import time
 
 class oneplus:
-    def __init__(self, cookie):
-        self.ck = cookie
+    def __init__(self):
+        self.ck = ''
         self.Log = ""
         self.UA = "Mozilla/5.0 (Linux; Android 14; LE2120 Build/UKQ1.230924.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.146 Mobile Safari/537.36 oppostore/403201 ColorOS/V14.0.0 brand/OnePlus model/LE2120;kyc/h5face;kyc/2.0;netType:NETWORK_WIFI;appVersion:403201;packageName:com.oppo.store"
         self.activityId_activityInfo = ""
@@ -227,20 +237,20 @@ class oneplus:
         task_type_texts = [
             1,# "立即签到",
             2,# "去看看",
-            # "去分享",
+            4,# "去分享",
             2,# "去逛逛",
             3,# "去预约",
             3,# "去预约",
             3,# "去预约",
-            # "去购买",
-            # "去组队",
+            5,# "去购买",
+            6,# "去组队",
             2,# "去看看",
             3,# "去预约",
-            # "去完成",
-            # "去添加",
-            # "去认证",
-            # "去关注",
-            # "去填写",
+            7,# "去完成",
+            8,# "去添加",
+            9,# "去认证",
+            10,# "去关注",
+            11,# "去填写",
             2,# "去逛逛",
             2,# "去看看"
         ]
@@ -256,5 +266,61 @@ class oneplus:
             return "已完成"
         else:
             return "已结束"
-                
+    
 
+    # 钱包签到
+    def continueSign(self):
+        url = "https://hwallet.finzfin.com/act/usersign/v1/continueSign"
+
+        payload = ujson.dumps({
+        "actId": "AID202207111442220933",
+        "funcId": "CONTINUEV2202209161649037309"
+        })
+
+        headers = {
+        'User-Agent': "Mozilla/5.0 (Linux; Android 14; LE2120 Build/UKQ1.230924.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.146 Mobile Safari/537.36;webank/h5face;webank/2.0 JSBridge/1 wallet/5.31.0_befb176_240927 FinshellWebSDK/3.0.2.74",
+        'Accept': "application/json;charset=UTF-8",
+        'Content-Type': "application/json",
+        'x-token': "TOKEN_eyJhbGciOiJFQ0RTQSIsInYiOiIxIn0.eyJleHAiOjE3MzE4Mzc3NzYyMTgsImlkIjoiNjk5ODkzMDU5IiwiaWRjIjoic2hvdW1pbmciLCJ0aWQiOiJYR2VCNUN4SkRyM25MN0lna2R5aHZ0RlFIczNWdXF1d3hNdTNBWFM4UGZPMHdwcXh0WmtXTkVWWGJ0cTJNTEZOS1dYK2Rpa0xmakZnZ2luNEtxK0JpZm0rTEdVeUtJNWdvUDlqbG9RVlpmST0ifQ.MEUCIQDTYNCBx3iliVXlR79AUkyZdPRfoCzePXtw2mY2eDIyuAIgF6hirnqnJunzzQpr1yq86QLQEWwaPGXOIlPV_GU6UBo"
+        }
+
+        response = requests.post(url, data=payload, headers=headers)
+        # response = requests.request("POST", url, headers=headers, data=payload)
+        print("continueSign", response.text)
+        j = ujson.loads(response.text)
+        if j["code"] == 200:
+            print(1)
+        else:
+            message = j['msg']
+            self.Log = self.Log + f"❌签到失败，{ message }\n"
+
+
+    def run(self):
+        OnePlus_COOKIE = os.getenv("OnePlus_COOKIE")
+        if not OnePlus_COOKIE:
+            notify.send("OnePlus_COOKIE",'🙃OnePlus_COOKIE 变量未设置')
+            print('🙃OnePlus_COOKIE 变量未设置')
+            exit()
+        ck_list = OnePlus_COOKIE.split('&')
+        print("-------------------总共" + str(int(len(ck_list))) + "🙃OnePlus_COOKIE CK-------------------")
+        for mt_token in ck_list:
+            try:
+                self.ck = mt_token
+                self.set_log("\n--------OPPO商城任务--------\n")
+                t = self.get_activityId()
+                self.shopping_signIn()
+                self.get_task()
+                self.membership_grade()
+                self.integral_query()
+                # self.continueSign()
+                print(self.get_log())
+                notify.send("OnePlus", self.get_log())
+            except Exception as e:
+                print("出错了！详细错误👇错误CK👉" + mt_token)
+                print(e)
+                notify.send("OnePlus", "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
+
+
+if __name__ == '__main__':
+    r = oneplus()
+    r.run()

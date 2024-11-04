@@ -1,11 +1,20 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+File: SunLogin.py(贝锐签到)
+Author: ytt447735
+cron: 2 8 * * *
+new Env('贝锐签到');
+Update: 2024/10/19
+"""
 import ujson
 import requests
-import com
-import re
 import base64
 import hashlib
 import time
 import os
+import notify
 
 class sunlogin:
     def __init__(self):
@@ -86,7 +95,7 @@ class sunlogin:
         'Cookie': self.ck
         }
         response = requests.get(url, headers=headers)
-        print("getDailys:"+response.text)
+        print("getDailys:"+response.text + '🔚')
         j = ujson.loads(response.text)
         for i, element in enumerate(j):
             id = element['pointdailyid']
@@ -109,11 +118,15 @@ class sunlogin:
         }
         response = requests.get(url, headers=headers)
         print("getPlants:"+response.text)
+        if '' == response.text:
+            return False
         j = ujson.loads(response.text)
         if "pointtotal" in response.text:
             self.Log = self.Log +"☀️余额："+str(j['pointtotal'])+"\n"
+            return True
         else:
             self.Log = self.Log +"☀️余额：未知\n"
+        return False
             
     # 提交任务
     def setIncome(self,key):
@@ -214,7 +227,7 @@ class sunlogin:
         return self.Log
     
     # 执行
-    def run(self,notify):
+    def run(self):
         task_name = '贝锐'
         ck_value = 'BR_COOKIE'
         CKS = os.getenv(ck_value)
@@ -225,18 +238,27 @@ class sunlogin:
         CKS_list = CKS.split('&')
         print("-------------------总共" + str(int(len(CKS_list))) + f"个{ck_value} CK-------------------")
         for mt_token in CKS_list:
-            try:
-                self.set_log("\n--------阳光小店签到--------\n")
-                self.income()
-                self.getDailys() # 收集阳光
-                self.set_log("\n--------阳光任务--------\n")
-                self.getPoints(3)
-                self.getPoints(2)
-                self.getPoints(0)
-                self.getPlants() #最终额度
-                print(self.get_log())
-                notify.send(task_name, self.get_log())
-            except Exception as e:
-                print("出错了！详细错误👇错误CK👉" + mt_token)
-                print(e)
-                notify.send(task_name, "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
+            # try:
+            self.ck = mt_token
+            if self.getPlants() == False:
+                self.set_log('⚠️ '+mt_token+ '  CK失效了')
+                continue
+            self.set_log("\n--------阳光小店签到--------\n")
+            self.income()
+            self.getDailys() # 收集阳光
+            self.set_log("\n--------阳光任务--------\n")
+            self.getPoints(3)
+            self.getPoints(2)
+            self.getPoints(0)
+            self.getPlants() #最终额度
+            # except Exception as e:
+            #     print("出错了！详细错误👇错误CK👉" + mt_token)
+            #     print(e)
+            #     notify.send(task_name, "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
+        print(self.get_log())
+        notify.send(task_name, self.get_log())
+
+
+if __name__ == '__main__':
+    w = sunlogin()
+    w.run()

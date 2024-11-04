@@ -1,22 +1,32 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+File: main.py(wps签到)
+Author: ytt447735
+cron: 0 8 * * *
+new Env('wps签到');
+Update: 2024/10/19
+"""
+import os, notify
 import time
 import ujson
 from PIL import Image
 from PIL import ImageEnhance
 import requests
 from io import BytesIO
-from fun import baidu
+from fun import baidu, code
 import base64
 from io import BytesIO
-from .code import identify
 
 class wps:
-    def __init__(self, cookie):
+    def __init__(self):
         self.Position = ["38%2C43", "105%2C50", "174%2C30", "245%2C50", "314%2C34"]  # 位置信息
-        self.ck = cookie
+        self.ck = ''
         self.Referer = 'https://vip.wps.cn/spa/2021/wps-sign/?position=2020_vip_massing&client_pay_version=202301'
         self.Origin = 'https://vip.wps.cn'
         self.Log = ""
-        self.code_fail = 0
+        self.code_fail=0
 
     # 获取奖励信息
     def get_reward(self):
@@ -145,11 +155,11 @@ class wps:
             image_base64 = base64.b64encode(response.content).decode('utf-8')
             # 处理验证码
             if self.code_fail<=3:
-                code = identify('pc', image_base64, '0')
+                co = code.identify('pc', image_base64, '0')
             if self.code_fail>=3:
-                code = identify('pc', image_base64, '1')
+                co = code.identify('pc', image_base64, '1')
             # return code
-            return self.submit_code(code)
+            return self.submit_code(co)
         else:
             self.code_fail = self.code_fail + 1
             return None
@@ -168,7 +178,7 @@ class wps:
             'Cookie': self.ck
         }
         response = requests.request("POST", url, headers=headers, data=payload)
-        print(response.text)
+        print("submit_code:" + response.text)
         if 'ClockAgent' in response.text:
             self.Log = self.Log + "🙅你今日已经签到过了！\n"
             return True
@@ -236,12 +246,18 @@ class wps:
             used = j['data']['spaces_info']['used']
             total = j['data']['spaces_info']['total']
             unit = j['data']['spaces_info']['unit']
+            series_signed = j['data']['sign_status']['series_signed']
+            total_signed = j['data']['sign_status']['total_signed']
+            not_sign = j['data']['sign_status']['not_sign']
             self.Log = self.Log + f"☁️云空间：{ used }{ unit }/{ total }{ unit }\n"
+            self.Log = self.Log + f"🪷连续签到：{ series_signed }天\n"
+            self.Log = self.Log + f"⚡️累计签到：{ total_signed }天\n"
             self.Log = self.Log + "📝签到日志：\n"
             normal_list = j['data']["reward_list"]["space"]["normal"]
             # 循环输出normal数组，带循环序号
             for index, value in enumerate(normal_list, start=1):
                 self.Log = self.Log + f"⌚️第{index}天🎁奖励{ value }M\n"
+            
 
 
     # 空间验证码处理
@@ -259,9 +275,9 @@ class wps:
             # 将图片内容转换为base64
             image_base64 = base64.b64encode(response.content).decode('utf-8')
             # 处理验证码
-            code = identify('space',image_base64,'0')
+            co = code.identify('space',image_base64, '0')
             # return 
-            return self.submit_space(code)
+            return self.submit_space(co)
         else:
             return None
 
@@ -288,12 +304,58 @@ class wps:
             self.Log = self.Log + f"🥀今日空间签到失败，{j['msg']}\n"
         return False
 
-    
+
     # 新增日志
     def set_log(self,text):
         self.Log = self.Log + text
 
-    
+
     # 获取日志
     def get_log(self):
+        # return self.Log.replace("\n","\r\n")
         return self.Log
+
+
+    def run(self):
+        wps_pc = os.getenv("wps_pc")
+        if not wps_pc:
+            notify.send("WPS_PC",'🙃wps PC CK 变量未设置')
+            print('🙃wps PC CK 变量未设置')
+            exit()
+        wps_pc_list = wps_pc.split('&')
+        print("-------------------总共" + str(int(len(wps_pc_list))) + "个wps_PC CK-------------------")
+        for mt_token in wps_pc_list:
+            try:
+                self.ck = mt_token
+                self.set_log("\n--------PC打卡--------\n")
+                for i in range(6):
+                    if self.code_processing():
+                        print("第" + str(i + 1) + "次尝试签到成功")
+                        break
+                    else:
+                        print("第" + str(i + 1) + "次尝试签到失败")
+                    time.sleep(1)
+                self.get_reward()  # 获取奖励信息
+                self.get_balance()  # 获取余额
+                # 开始空间处理
+                self.set_log("\n--------云空间--------\n")
+                for i in range(5):
+                    if self.space_code_processing():
+                        print("第" + str(i + 1) + "次尝试空间签到成功")
+                        break
+                    else:
+                        print("第" + str(i + 1) + "次尝试空间签到失败")
+                    time.sleep(1)
+                self.get_space_quota() #获取空间额度
+                print("📝签到日志：")
+                print(self.get_log())
+                # notify.send("WPS_PC", w.get_log())
+            except Exception as e:
+                print("出错了！详细错误👇错误CK👉" + mt_token)
+                print(e)
+                # notify.send("WPS_PC", "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
+
+
+if __name__ == '__main__':
+    r = wps()
+    r.run()
