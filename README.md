@@ -11,7 +11,7 @@
 
 ##### 拉库
 ```
-ql repo https://github.com/ytt447735/automation.git wps.py fun|notify.py fun main py
+ql repo https://github.com/ytt447735/automation.git   fun|notify.py fun main py
 ```
 ##### 环境变量
 PC(day等于每日签到时自动兑换天数，可不设)：
