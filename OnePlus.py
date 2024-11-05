@@ -13,6 +13,7 @@ import ujson
 import requests
 import re
 import time
+from fun import com
 
 class oneplus:
     def __init__(self):
@@ -295,6 +296,39 @@ class oneplus:
             self.Log = self.Log + f"❌签到失败，{ message }\n"
 
 
+     # 一加论坛签到
+    def bbsSign(self):
+        url = "https://bbs-api-cn.oneplus.com/task/api/sign/v1/create"
+        params = {
+        'ver': "bbs42703",
+        'timestamp': com.get_time(),
+        # 'sign': ""
+        }
+        headers = {
+        'User-Agent': "bbs/android/42703",
+        'Accept-Encoding': "gzip",
+        'model': "LE2120",
+        'osver': "android14",
+        'romv': "LE2120_14.0.0.720(CN01)",
+        'lang': "zh-CN",
+        'token': com.GetIntermediateText(self.ck,"TOKENSID=",";"),
+        'tz': "Asia/Shanghai"
+        }
+        response = requests.post(url, params=params, headers=headers)
+        print(response.text)
+        j = ujson.loads(response.text)
+        if j["code"] == 200:
+            if j['data']['todaySigned']==True:
+                self.Log = self.Log +'今天已经签到过啦！\n'
+            else:
+                self.Log = self.Log +'今天签到成功！\n'
+            self.Log = self.Log + '累计签到：'+str(j['data']['signDays'])+'天\n'
+            self.Log = self.Log + '连续签到：'+str(j['data']['continuousSignDays'])+'天\n'
+            self.Log = self.Log + '再连续签到'+str(j['data']['extSignDays'])+'天，可额外获得'+str(j['data']['extCredit'])+'积分\n'
+        else:
+            self.Log = self.Log +"一加论坛签到失败，"+j['msg']+"\n"
+
+
     def run(self):
         OnePlus_COOKIE = os.getenv("OnePlus_COOKIE")
         if not OnePlus_COOKIE:
@@ -306,13 +340,15 @@ class oneplus:
         for mt_token in ck_list:
             try:
                 self.ck = mt_token
+                self.set_log("\n--------一加论坛签到--------\n")
+                r.bbsSign()
                 self.set_log("\n--------OPPO商城任务--------\n")
                 t = self.get_activityId()
                 self.shopping_signIn()
                 self.get_task()
                 self.membership_grade()
                 self.integral_query()
-                # self.continueSign()
+                self.continueSign()
                 print(self.get_log())
                 notify.send("OnePlus", self.get_log())
             except Exception as e:
