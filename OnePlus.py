@@ -338,23 +338,23 @@ class oneplus:
         ck_list = OnePlus_COOKIE.split('&')
         print("-------------------总共" + str(int(len(ck_list))) + "🙃OnePlus_COOKIE CK-------------------")
         for mt_token in ck_list:
-            try:
-                self.ck = mt_token
-                self.set_log("\n--------一加论坛签到--------\n")
-                r.bbsSign()
-                self.set_log("\n--------OPPO商城任务--------\n")
-                t = self.get_activityId()
-                self.shopping_signIn()
-                self.get_task()
-                self.membership_grade()
-                self.integral_query()
-                # self.continueSign()
-                print(self.get_log())
-                notify.send("OnePlus", self.get_log())
-            except Exception as e:
-                print("出错了！详细错误👇错误CK👉" + mt_token)
-                print(e)
-                notify.send("OnePlus", "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
+            # try:
+            self.ck = mt_token
+            self.set_log("\n--------一加论坛签到--------\n")
+            r.bbsSign()
+            self.set_log("\n--------OPPO商城任务--------\n")
+            t = self.get_activityId()
+            self.shopping_signIn()
+            self.get_task()
+            self.membership_grade()
+            self.integral_query()
+            # self.continueSign()
+            print(self.get_log())
+            notify.send("OnePlus", self.get_log())
+            # except Exception as e:
+            # print("出错了！详细错误👇错误CK👉" + mt_token)
+                # print(e)
+                # notify.send("OnePlus", "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
 
 
 if __name__ == '__main__':
