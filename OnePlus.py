@@ -348,7 +348,7 @@ class oneplus:
                 self.get_task()
                 self.membership_grade()
                 self.integral_query()
-                self.continueSign()
+                # self.continueSign()
                 print(self.get_log())
                 notify.send("OnePlus", self.get_log())
             except Exception as e:
