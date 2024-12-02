@@ -349,7 +349,7 @@ class wps:
                 self.get_space_quota() #获取空间额度
                 print("📝签到日志：")
                 print(self.get_log())
-                notify.send("WPS_PC", w.get_log())
+                notify.send("WPS_PC", r.get_log())
             except Exception as e:
                 print("出错了！详细错误👇错误CK👉" + mt_token)
                 print(e)
