@@ -32,6 +32,23 @@ requests
 
 #### CK失效
 目前测试发现CK好像不会过期，一直有效
+
+</details>
+
+<details> <summary>WPS签到打码部署</summary>
+  
+犹豫各位需求有点多，我服务器压力有点大，各位自行部署吧<br/>
+部署完毕后 http://IP:8080/ 打开能看见“Hello, World!”说明部署成功了<br/>
+最后替换对应的fun/code.py中的链接<br/>
+```
+docker run -d \
+  --name wps_verification \
+  -p 8080:8080 \
+  --restart unless-stopped \
+  ytt4477/wps_verification:latest \
+  /bin/bash -c /apps/run.sh
+```
+
 </details>
 
 ---
