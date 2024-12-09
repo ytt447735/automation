@@ -325,35 +325,35 @@ class wps:
         wps_pc_list = wps_pc.split('&')
         print("-------------------总共" + str(int(len(wps_pc_list))) + "个wps_PC CK-------------------")
         for mt_token in wps_pc_list:
-            try:
-                self.ck = mt_token
-                self.set_log("\n--------PC打卡--------\n")
-                for i in range(6):
-                    if self.code_processing():
-                        print("第" + str(i + 1) + "次尝试签到成功")
-                        break
-                    else:
-                        print("第" + str(i + 1) + "次尝试签到失败")
-                    time.sleep(1)
-                self.get_reward()  # 获取奖励信息
-                self.get_balance()  # 获取余额
-                # 开始空间处理
-                self.set_log("\n--------云空间--------\n")
-                for i in range(5):
-                    if self.space_code_processing():
-                        print("第" + str(i + 1) + "次尝试空间签到成功")
-                        break
-                    else:
-                        print("第" + str(i + 1) + "次尝试空间签到失败")
-                    time.sleep(1)
-                self.get_space_quota() #获取空间额度
-                print("📝签到日志：")
-                print(self.get_log())
-                notify.send("WPS_PC", w.get_log())
-            except Exception as e:
-                print("出错了！详细错误👇错误CK👉" + mt_token)
-                print(e)
-                notify.send("WPS_PC", "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
+            # try:
+            self.ck = mt_token
+            self.set_log("\n--------PC打卡--------\n")
+            for i in range(6):
+                if self.code_processing():
+                    print("第" + str(i + 1) + "次尝试签到成功")
+                    break
+                else:
+                    print("第" + str(i + 1) + "次尝试签到失败")
+                time.sleep(1)
+            self.get_reward()  # 获取奖励信息
+            self.get_balance()  # 获取余额
+            # 开始空间处理
+            self.set_log("\n--------云空间--------\n")
+            for i in range(5):
+                if self.space_code_processing():
+                    print("第" + str(i + 1) + "次尝试空间签到成功")
+                    break
+                else:
+                    print("第" + str(i + 1) + "次尝试空间签到失败")
+                time.sleep(1)
+            self.get_space_quota() #获取空间额度
+            print("📝签到日志：")
+            print(self.get_log())
+            notify.send("WPS_PC", w.get_log())
+            # except Exception as e:
+            #     print("出错了！详细错误👇错误CK👉" + mt_token)
+            #     print(e)
+            #     notify.send("WPS_PC", "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
 
 
 if __name__ == '__main__':
