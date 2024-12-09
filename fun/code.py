@@ -14,8 +14,9 @@ def identify(mo,code,model):
         'model': model
     }
     response = requests.request("POST", url, headers=headers, data=payload)
+    j = response.text.replace(' ', '').replace('\n', '').replace('\t', '')
     pattern = re.compile(r'\[\[(.*?)\]\]')
-    matches = pattern.findall(response.text)
+    matches = pattern.findall(j)
     print(matches)
     # 38%2C43%7C105%2C50%7C174%2C30%7C245%2C50%7C314%2C34
     # 38,43|105,50|174,30|245,50|314,34
