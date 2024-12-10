@@ -27,6 +27,7 @@ class wps:
         self.Origin = 'https://vip.wps.cn'
         self.Log = ""
         self.code_fail=0
+        self.userid = ''
 
     # 获取奖励信息
     def get_reward(self):
@@ -61,12 +62,14 @@ class wps:
         }
         response = requests.request("POST", url, headers=headers, data=payload)
         print(response.text)
-        j = ujson.loads(response.text)
-        if j["result"] == "ok":
-            self.Log = self.Log + f"👤用户信息：{j['nickname']}\n"
-            return j['userid']
+        if "userid" in response.text:
+            j = ujson.loads(response.text)
+            if j["result"] == "ok":
+                self.Log = self.Log + f"👤用户信息：{j['nickname']}\n"
+                self.userid = j['userid']
+                return True
         self.Log = self.Log + f"👤用户信息：获取失败\n"
-        return ""
+        return False
 
     # 获取时间戳
     def get_time(self):
@@ -74,10 +77,9 @@ class wps:
 
     # 处理验证码
     def code_processing_bak(self):
-        userid = self.get_check()
-        if userid == "":
+        if self.userid == "":
             return False
-        url = f"https://personal-act.wps.cn/vas_risk_system/v1/captcha/image?service_id=wps_clock&t={self.get_time()}&request_id=wps_clock_{userid}"
+        url = f"https://personal-act.wps.cn/vas_risk_system/v1/captcha/image?service_id=wps_clock&t={self.get_time()}&request_id=wps_clock_{self.userid}"
 
         # 构造请求头，包含Cookie信息
         headers = {'Cookie': self.ck}
@@ -140,10 +142,9 @@ class wps:
     
     
     def code_processing(self):
-        userid = self.get_check()
-        if userid == "":
+        if self.userid == "":
             return False
-        url = f"https://personal-act.wps.cn/vas_risk_system/v1/captcha/image?service_id=wps_clock&t={self.get_time()}&request_id=wps_clock_{userid}"
+        url = f"https://personal-act.wps.cn/vas_risk_system/v1/captcha/image?service_id=wps_clock&t={self.get_time()}&request_id=wps_clock_{self.userid}"
 
         # 构造请求头，包含Cookie信息
         headers = {'Cookie': self.ck}
@@ -328,6 +329,9 @@ class wps:
             # try:
             self.ck = mt_token
             self.set_log("\n--------PC打卡--------\n")
+            if not self.get_check():
+                self.set_log(mt_token+" CK失效了\n")
+                continue
             for i in range(6):
                 if self.code_processing():
                     print("第" + str(i + 1) + "次尝试签到成功")
@@ -349,7 +353,7 @@ class wps:
             self.get_space_quota() #获取空间额度
             print("📝签到日志：")
             print(self.get_log())
-            notify.send("WPS_PC", w.get_log())
+            notify.send("WPS_PC", self.get_log())
             # except Exception as e:
             #     print("出错了！详细错误👇错误CK👉" + mt_token)
             #     print(e)
