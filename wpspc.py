@@ -11,8 +11,6 @@ Update: 2024/10/19
 import os, notify
 import time
 import ujson
-from PIL import Image
-from PIL import ImageEnhance
 import requests
 from io import BytesIO
 from fun import baidu, code
@@ -76,71 +74,6 @@ class wps:
         return int(round(time.time() * 1000))
 
     # 处理验证码
-    def code_processing_bak(self):
-        if self.userid == "":
-            return False
-        url = f"https://personal-act.wps.cn/vas_risk_system/v1/captcha/image?service_id=wps_clock&t={self.get_time()}&request_id=wps_clock_{self.userid}"
-
-        # 构造请求头，包含Cookie信息
-        headers = {'Cookie': self.ck}
-
-        # 发送带有Cookie的HTTP请求获取图片
-        response = requests.get(url, headers=headers)
-        img = response.content
-        with open("code.png", 'wb') as f:
-            f.write(img)
-        img0 = Image.open(BytesIO(response.content))
-
-        # img0 = Image.open('code.png')
-
-        # 增强对比度
-        enhancer = ImageEnhance.Contrast(img0)
-        img = enhancer.enhance(2.0)
-
-        # 水平分割图片成5张
-        width, height = img.size
-        segment_width = width // 5
-        print(f"图片宽度: {width}, 分割后每张图片宽度: {segment_width}")
-
-        segmented_images = []
-        for i in range(5):
-            left = i * segment_width
-            right = (i + 1) * segment_width
-            segment = img.crop((left, 0, right, height))
-            segmented_images.append(segment)
-
-        # 缓存分割后的图片
-        # for i, segment_img in enumerate(segmented_images):
-        #     output_buffer = BytesIO()
-        #     segment_img.save(output_buffer, format='PNG')
-        #     byte_data = output_buffer.getvalue()
-        #     content = base64.b64encode(byte_data).decode("utf8")
-        #     # print(content)
-        #     # segment_img.save(f"segment_{i + 1}.png")
-
-        P = ""
-        L = "识别结果："
-        # 对每张图片进行汉字识别
-        for i, segment_img in enumerate(segmented_images):
-            time.sleep(1.5)
-            # text = pytesseract.image_to_string(segment_img, lang='chi_sim')
-            # print(f"识别结果 {i+1}: {text}")
-            output_buffer = BytesIO()
-            segment_img.save(output_buffer, format='PNG')
-            byte_data = output_buffer.getvalue()
-            content = base64.b64encode(byte_data).decode("utf8")
-            num = baidu.get_manage(content)
-            # print(f"识别结果 {i + 1}: {num}")
-            if num == 0:
-                P = P + self.Position[i] + '%7C'
-                L = L + f"{i + 1},"
-        P = P.rstrip("%7C")
-        L = L.rstrip(",") + "为倒立字"
-        print(P)
-        print(L)
-        return self.submit_code(P)
-    
-    
     def code_processing(self):
         if self.userid == "":
             return False
@@ -159,11 +92,13 @@ class wps:
                 co = code.identify('pc', image_base64, '0')
             if self.code_fail>=3:
                 co = code.identify('pc', image_base64, '1')
+            if co == None:
+                return False
             # return code
             return self.submit_code(co)
         else:
             self.code_fail = self.code_fail + 1
-            return None
+            return False
     
     
     # 提交验证码
@@ -332,32 +267,36 @@ class wps:
             if not self.get_check():
                 self.set_log(mt_token+" CK失效了\n")
                 continue
-            for i in range(6):
+            i = 0
+            while True:
+                i = i + 1
                 if self.code_processing():
                     print("第" + str(i + 1) + "次尝试签到成功")
                     break
                 else:
                     print("第" + str(i + 1) + "次尝试签到失败")
-                time.sleep(1)
+                time.sleep(2)
             self.get_reward()  # 获取奖励信息
             self.get_balance()  # 获取余额
             # 开始空间处理
             self.set_log("\n--------云空间--------\n")
-            for i in range(5):
+            i = 0
+            while True:
+                i = i + 1
                 if self.space_code_processing():
                     print("第" + str(i + 1) + "次尝试空间签到成功")
                     break
                 else:
                     print("第" + str(i + 1) + "次尝试空间签到失败")
-                time.sleep(1)
+                time.sleep(2)
             self.get_space_quota() #获取空间额度
             print("📝签到日志：")
             print(self.get_log())
             notify.send("WPS_PC", self.get_log())
             # except Exception as e:
-            #     print("出错了！详细错误👇错误CK👉" + mt_token)
-            #     print(e)
-            #     notify.send("WPS_PC", "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
+            # print("出错了！详细错误👇错误CK👉" + mt_token)
+                # print(e)
+                # notify.send("WPS_PC", "出错了！详细错误👇错误CK👉" + mt_token +"\n错误内容:" + str(e))
 
 
 if __name__ == '__main__':
