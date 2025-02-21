@@ -318,13 +318,14 @@ class oneplus:
         print(response.text)
         j = ujson.loads(response.text)
         if j["code"] == 200:
-            if j['data']['todaySigned']==True:
-                self.Log = self.Log +'今天已经签到过啦！\n'
-            else:
-                self.Log = self.Log +'今天签到成功！\n'
-            self.Log = self.Log + '累计签到：'+str(j['data']['signDays'])+'天\n'
-            self.Log = self.Log + '连续签到：'+str(j['data']['continuousSignDays'])+'天\n'
-            self.Log = self.Log + '再连续签到'+str(j['data']['extSignDays'])+'天，可额外获得'+str(j['data']['extCredit'])+'积分\n'
+            # if j['data']['todaySigned']==True:
+            #     self.Log = self.Log +'今天已经签到过啦！\n'
+            # else:
+            #     self.Log = self.Log +'今天签到成功！\n'
+            # self.Log = self.Log + '累计签到：'+str(j['data']['signDays'])+'天\n'
+            # self.Log = self.Log + '连续签到：'+str(j['data']['continuousSignDays'])+'天\n'
+            # self.Log = self.Log + '再连续签到'+str(j['data']['extSignDays'])+'天，可额外获得'+str(j['data']['extCredit'])+'积分\n'
+            self.Log = self.Log +'今天签到成功！\n'
         else:
             self.Log = self.Log +"一加论坛签到失败，"+j['msg']+"\n"
 
